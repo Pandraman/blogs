@@ -44,6 +44,10 @@ jobs:
       run: |
         cat $GITHUB_WORKSPACE/generated_content.html
 
+    - name: Add generated_content.html
+      run: |
+        git add $GITHUB_WORKSPACE/generated_content.html
+
     - name: Commit and push changes
       run: |
         git config --global user.name 'github-actions[bot]'
