@@ -3,61 +3,49 @@ name: Update Blog Entries
 on:
   push:
     branches:
-      - main
+      - main  # Change this to your default branch if it's not 'main'
   pull_request:
     branches:
-      - main
+      - main  # Change this to your default branch if it's not 'main'
 
 jobs:
-  update-blog:
+  update-blog-entries:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
+    - name: Checkout repository
+      uses: actions/checkout@v2
 
-      - name: Generate list.json
-        run: |
-          echo "[" > list.json
-          find . -type f -name "*.html" \
-            -not -name "index.html" \
-            -not -name "template.html" \
-            -not -path '*/\.*' | while read file; do
-              date_line=$(sed -n '18 { s/^[ \t]*//; s/[ \t]*$//; s/\r//g; s/^"//; s/"$//; p; }' "$file" | tr -d '\n')
-              content_line=$(sed -n '22 { s/^[ \t]*//; s/[ \t]*$//; s/\r//g; s/^"//; s/"$//; p; }' "$file" | tr -d '\n')
-              file_url=$(echo "$file" | sed 's|^./||')
-              echo "{\"url\": \"$file_url\", \"date\": \"$date_line\", \"content\": \"$content_line\"}," >> list.json
-          done
-          sed -i '$ s/,$//' list.json
-          echo "]" >> list.json
-
-      - name: Process each entry
-        run: |
-          entries=$(cat list.json)
-          new_content=""
-          echo "$entries" | jq -c '.[]' | while read entry; do
-            url=$(echo "$entry" | jq -r '.url')
-            content=$(echo "$entry" | jq -r '.content')
-            filename=$(basename "$url" .html)
-
+    - name: Generate new content for index.html
+      run: |
+        new_content=""
+        find . -type f -name "*.html" \
+          -not -name "index.html" \
+          -not -name "template.html" \
+          -not -path '*/\.*' | while read file; do
+            date_line=$(sed -n '18 { s/^[ \t]*//; s/[ \t]*$//; s/\r//g; s/^"//; s/"$//; p; }' "$file" | tr -d '\n')
+            content_line=$(sed -n '22 { s/^[ \t]*//; s/[ \t]*$//; s/\r//g; s/^"//; s/"$//; p; }' "$file" | tr -d '\n')
+            file_url=$(echo "$file" | sed 's|^./||')
+            filename=$(basename "$file" .html)
+        
             # Create HTML entry for the blog
-            new_content="${new_content}<br>\n<div class=\"blog\">\n<h2>${filename}</h2>\n<p>${content}</p>\n<a href=\"${url}\">Details</a>\n</div>\n<br>\n"
-          done
+            new_content="${new_content}<br>\n<div class=\"blog\">\n<h2>${filename}</h2>\n<p>${content_line}</p>\n<a href=\"${file_url}\">Details</a>\n</div>\n<br>\n"
+        done
+        
+        # Debug: Output the new content
+        echo "Generated Content:"
+        echo -e "$new_content"
+        
+        # Insert the new content into template.html and output to index.html
+        awk -v new_content="$new_content" '{gsub("<!--template-->", new_content)}1' template.html > index.html.tmp
+        mv index.html.tmp index.html
 
-          # Debug: Output the new content
-          echo "Generated Content:"
-          echo -e "$new_content"
-
-          # Insert the new content into template.html and output to index.html
-          awk -v new_content="$new_content" '{gsub("<!--template-->", new_content)}1' template.html > index.html.tmp
-          mv index.html.tmp index.html
-
-      - name: Commit and push changes
-        run: |
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git add index.html
-          git commit -m 'Update index.html with blog entries'
-          git push
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Commit and push changes
+      run: |
+        git config --global user.name 'github-actions[bot]'
+        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+        git add index.html
+        git commit -m 'Update index.html with latest blog entries'
+        git push
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
