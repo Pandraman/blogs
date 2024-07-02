@@ -1,4 +1,4 @@
-name: Generate file list
+name: Generate Blog Entries
 
 on:
   push:
@@ -9,14 +9,14 @@ on:
       - main
 
 jobs:
-  generate-list:
+  generate-blog:
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
 
-    - name: Generate file list
+    - name: Generate list.json
       run: |
         echo "[" > list.json
         find . -type f -name "*.html" -not -name "index.html" -not -name "template.html" -not -path '*/\.*' | while read file; do
@@ -28,12 +28,11 @@ jobs:
         sed -i '$ s/,$//' list.json
         echo "]" >> list.json
 
-    - name: Debug - Output list.json content
+    - name: Debug - Output list.json
       run: cat list.json
 
-    - name: Generate index.html from template
+    - name: Generate blog entries
       run: |
-        # Read list.json content and process each entry
         entries=$(cat list.json)
         new_content=""
 
@@ -47,11 +46,11 @@ jobs:
           new_content="${new_content}<br>\n<div class=\"blog\">\n<h2>${filename}</h2>\n<p>${content}</p>\n<a href=\"${url}\">Details</a>\n</div>\n<br>\n"
         done
 
-        # Insert the new content into template.html and output to index.html
-        awk -v new_content="$new_content" '{gsub("<!--template-->", new_content)}1' template.html > index.html.tmp
+        # Insert new_content into template.html and output to index.html
+        awk -v new_content="$new_content" '{gsub("<!--template-->", "Testing template replacement")}1' template.html > index.html.tmp
         mv index.html.tmp index.html
 
-    - name: Debug - Output index.html content
+    - name: Debug - Output index.html
       run: cat index.html
 
     - name: Commit and push changes
@@ -59,7 +58,7 @@ jobs:
         git config --global user.name 'github-actions[bot]'
         git config --global user.email 'github-actions[bot]@users.noreply.github.com'
         git add list.json index.html
-        git commit -m 'Update list.json and index.html'
+        git commit -m 'Update list.json and index.html with test template replacement'
         git push
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
