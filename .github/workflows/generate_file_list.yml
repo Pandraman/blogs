@@ -37,30 +37,19 @@ jobs:
         entries=$(cat list.json)
         new_content=""
 
-        echo "Entries:"
-        echo "$entries"
-
         # Process each JSON entry
         echo "$entries" | jq -c '.[]' | while read entry; do
-          echo "Processing entry: $entry"
           url=$(echo "$entry" | jq -r '.url')
           content=$(echo "$entry" | jq -r '.content')
           filename=$(basename "$url" .html)
-
-          echo "URL: $url"
-          echo "Filename: $filename"
-          echo "Content: $content"
 
           # Create HTML entry for the blog
           new_content="${new_content}<br>\n<div class=\"blog\">\n<h2>${filename}</h2>\n<p>${content}</p>\n<a href=\"${url}\">Details</a>\n</div>\n<br>\n"
         done
 
-        # Debug - Output the new content
-        echo "Generated Content:"
-        echo -e "$new_content"
-
         # Insert the new content into template.html and output to index.html
-        awk -v new_content="$new_content" '{gsub("<!--template-->", new_content)}1' template.html > index.html
+        awk -v new_content="$new_content" '{gsub("<!--template-->", new_content)}1' template.html > index.html.tmp
+        mv index.html.tmp index.html
 
     - name: Debug - Output index.html content
       run: cat index.html
@@ -70,7 +59,7 @@ jobs:
         git config --global user.name 'github-actions[bot]'
         git config --global user.email 'github-actions[bot]@users.noreply.github.com'
         git add list.json index.html
-        git commit -m 'Update list.json and index.html' || echo "No changes to commit"
+        git commit -m 'Update list.json and index.html'
         git push
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
