@@ -44,6 +44,10 @@ jobs:
           new_content="${new_content}<br>\n<div class=\"blog\">\n<h2>${filename}</h2>\n<p>${content}</p>\n<a href=\"${url}\">Details</a>\n</div>\n<br>\n"
         done
 
+        # Debug: Output the new content
+        echo "Generated Content:"
+        echo -e "$new_content"
+
         # Insert the new content into template.html and output to index.html
         awk -v new_content="$new_content" '{gsub("<!--template-->", new_content)}1' template.html > index.html
 
