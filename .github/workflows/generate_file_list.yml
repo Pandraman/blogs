@@ -19,7 +19,7 @@ jobs:
     - name: Generate file list
       run: |
         echo "[" > list.json
-        find . -type f -name "*.html" -not -name "index.html" -not -path '*/\.*' | while read file; do
+        find . -type f -name "*.html" -not -name "index.html" -not -name "template.html" -not -path '*/\.*' | while read file; do
           date_line=$(sed -n '18 { s/^[ \t]*//; s/[ \t]*$//; s/\r//g; s/^"//; s/"$//; p; }' "$file" | tr -d '\n')
           content_line=$(sed -n '22 { s/^[ \t]*//; s/[ \t]*$//; s/\r//g; s/^"//; s/"$//; p; }' "$file" | tr -d '\n')
           file_url=$(echo "$file" | sed 's|^./||')
