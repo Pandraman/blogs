@@ -34,11 +34,15 @@ jobs:
         
         # Debug: Output the new content
         echo "Generated Content:"
-        echo -e "$new_content" > generated_content.html
+        echo -e "$new_content"
         
         # Insert the new content into template.html and output to index.html
         awk -v new_content="$new_content" '{gsub("<!--template-->", new_content)}1' template.html > index.html.tmp
         mv index.html.tmp index.html
+
+    - name: Show generated content
+      run: |
+        cat generated_content.html
 
     - name: Commit and push changes
       run: |
