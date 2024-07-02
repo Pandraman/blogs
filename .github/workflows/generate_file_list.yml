@@ -30,6 +30,7 @@ jobs:
         done < <(find . -type f -name "*.html" \
                     -not -name "index.html" \
                     -not -name "template.html" \
+                    -not -name "generated_content.html" \
                     -not -path '*/\.*')
 
         # Debug: Output the new content
