@@ -1,14 +1,14 @@
-# Thank you so much chatgpt
+#thank you chatgpt
 
 name: Generate file list
 
 on:
   push:
     branches:
-      - main
+      - main  # Change this to your default branch if it's not 'main'
   pull_request:
     branches:
-      - main
+      - main  # Change this to your default branch if it's not 'main'
 
 jobs:
   generate-list:
@@ -21,12 +21,11 @@ jobs:
     - name: Generate file list
       run: |
         echo "[" > list.json
-        find . -type f -not -path '*/\.*' | while read file; do
-          date=$(sed -n '18p' "$file" | jq -R -s -c .)
-          content=$(sed -n '20p' "$file" | jq -R -s -c .)
-          filename=$(basename "$file" | jq -R -s -c .)
+        find . -type f -name "*.html" -not -path '*/\.*' | while read file; do
+          date_line=$(sed -n '18p' "$file" | jq -R -s -c .)
+          content_line=$(sed -n '20p' "$file" | jq -R -s -c .)
           file_url=$(echo "$file" | sed 's|^./||' | jq -R -s -c .)
-          echo "{\"url\": $file_url, \"first_line\": $first_line, \"second_line\": $second_line}," >> list.json
+          echo "{\"url\": $file_url, \"date\": $date_line, \"content\": $content_line}," >> list.json
         done
         sed -i '$ s/,$//' list.json
         echo "]" >> list.json
