@@ -28,7 +28,7 @@ jobs:
         sed -i '$ s/,$//' list.json
         echo "]" >> list.json
 
-    - name: Debug: Output list.json content
+    - name: Debug - Output list.json content
       run: cat list.json
 
     - name: Generate index.html from template
