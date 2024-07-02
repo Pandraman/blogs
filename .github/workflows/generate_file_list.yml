@@ -20,8 +20,8 @@ jobs:
       run: |
         echo "[" > list.json
         find . -type f -name "*.html" -not -path '*/\.*' | while read file; do
-          date_line=$(sed -n '18s/^[ \t]*//;18s/[ \t]*$//' "$file" | jq -R -s -c .)
-          content_line=$(sed -n '22s/^[ \t]*//;22s/[ \t]*$//' "$file" | jq -R -s -c .)
+          date_line=$(sed -n '18s/^[[:space:]]*//p' "$file" | jq -R -s -c .)
+          content_line=$(sed -n '22s/^[[:space:]]*//p' "$file" | jq -R -s -c .)
           file_url=$(echo "$file" | sed 's|^./||' | jq -R -s -c .)
           echo "{\"url\": $file_url, \"date\": $date_line, \"content\": $content_line}," >> list.json
         done
