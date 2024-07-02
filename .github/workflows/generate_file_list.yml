@@ -34,7 +34,8 @@ jobs:
         entries=$(cat list.json)
         new_content=""
 
-        for entry in $(echo "$entries" | jq -c '.[]'); do
+        # Process each JSON entry
+        echo "$entries" | jq -c '.[]' | while read entry; do
           url=$(echo "$entry" | jq -r '.url')
           content=$(echo "$entry" | jq -r '.content')
           filename=$(basename "$url" .html)
