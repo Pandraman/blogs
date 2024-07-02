@@ -30,9 +30,6 @@ jobs:
 
     - name: Generate index.html from template
       run: |
-        # Read template.html content
-        template=$(cat template.html)
-
         # Read list.json content and process each entry
         entries=$(cat list.json)
         new_content=""
@@ -46,8 +43,8 @@ jobs:
           new_content="${new_content}<br>\n<div class=\"blog\">\n<h2>${filename}</h2>\n<p>${content}</p>\n<a href=\"${url}\">Details</a>\n</div>\n<br>\n"
         done
 
-        # Replace <!--template--> in template.html with new content
-        echo "$template" | sed "s|<!--template-->|${new_content}|g" > index.html
+        # Insert the new content into template.html and output to index.html
+        awk -v new_content="$new_content" '{gsub("<!--template-->", new_content)}1' template.html > index.html
 
     - name: Commit and push changes
       run: |
