@@ -19,7 +19,7 @@ jobs:
     - name: Generate file list
       run: |
         echo "[" > list.json
-        find . -type f -name "*.html" -not -path '*/\.*' | while read file; do
+        find . -type f -name "*.html" -not -name "index.html" -not -path '*/\.*' | while read file; do
           date_line=$(sed -n '18 { s/^[ \t]*//; s/[ \t]*$//; s/\r//g; s/^"//; s/"$//; p; }' "$file" | tr -d '\n')
           content_line=$(sed -n '22 { s/^[ \t]*//; s/[ \t]*$//; s/\r//g; s/^"//; s/"$//; p; }' "$file" | tr -d '\n')
           file_url=$(echo "$file" | sed 's|^./||')
@@ -28,12 +28,33 @@ jobs:
         sed -i '$ s/,$//' list.json
         echo "]" >> list.json
 
+    - name: Generate index.html from template
+      run: |
+        # Read template.html content
+        template=$(cat template.html)
+
+        # Read list.json content and process each entry
+        entries=$(cat list.json)
+        new_content=""
+
+        for entry in $(echo "$entries" | jq -c '.[]'); do
+          url=$(echo "$entry" | jq -r '.url')
+          content=$(echo "$entry" | jq -r '.content')
+          filename=$(basename "$url" .html)
+
+          # Create HTML entry for the blog
+          new_content="${new_content}<br>\n<div class=\"blog\">\n<h2>${filename}</h2>\n<p>${content}</p>\n<a href=\"${url}\">Details</a>\n</div>\n<br>\n"
+        done
+
+        # Replace <!--template--> in template.html with new content
+        echo "$template" | sed "s|<!--template-->|${new_content}|g" > index.html
+
     - name: Commit and push changes
       run: |
         git config --global user.name 'github-actions[bot]'
         git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-        git add list.json
-        git commit -m 'Update list.json'
+        git add list.json index.html
+        git commit -m 'Update list.json and index.html'
         git push
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
