@@ -19,24 +19,26 @@ jobs:
     - name: Generate new content for index.html
       run: |
         new_content=""
-        find . -type f -name "*.html" \
-          -not -name "index.html" \
-          -not -name "template.html" \
-          -not -path '*/\.*' | while read file; do
-            date_line=$(sed -n '18 { s/^[ \t]*//; s/[ \t]*$//; s/\r//g; s/^"//; s/"$//; p; }' "$file" | tr -d '\n')
-            content_line=$(sed -n '22 { s/^[ \t]*//; s/[ \t]*$//; s/\r//g; s/^"//; s/"$//; p; }' "$file" | tr -d '\n')
-            file_url=$(echo "$file" | sed 's|^./||')
-            filename=$(basename "$file" .html)
-        
-            # Create HTML entry for the blog
-            new_content="${new_content}<br>\n<div class=\"blog\">\n<h2>${filename}</h2>\n<p>${content_line}</p>\n<a href=\"${file_url}\">Details</a>\n</div>\n<br>\n"
-            echo -e "$new_content"
-        done
-        
+        while IFS= read -r file; do
+          date_line=$(sed -n '18 { s/^[ \t]*//; s/[ \t]*$//; s/\r//g; s/^"//; s/"$//; p; }' "$file" | tr -d '\n')
+          content_line=$(sed -n '22 { s/^[ \t]*//; s/[ \t]*$//; s/\r//g; s/^"//; s/"$//; p; }' "$file" | tr -d '\n')
+          file_url=$(echo "$file" | sed 's|^./||')
+          filename=$(basename "$file" .html)
+      
+          # Create HTML entry for the blog
+          new_content="${new_content}<br>\n<div class=\"blog\">\n<h2>${filename}</h2>\n<p>${content_line}</p>\n<a href=\"${file_url}\">Details</a>\n</div>\n<br>\n"
+        done < <(find . -type f -name "*.html" \
+                    -not -name "index.html" \
+                    -not -name "template.html" \
+                    -not -path '*/\.*')
+
         # Debug: Output the new content
         echo "Generated Content:"
-        echo -e "$new_content" > $GITHUB_WORKSPACE/generated_content.html  # Store in workspace directory
-        
+        echo -e "$new_content"  # Output to console for verification
+
+        # Redirect to generated_content.html
+        echo -e "$new_content" > $GITHUB_WORKSPACE/generated_content.html
+
         # Insert the new content into template.html and output to index.html
         awk -v new_content="$new_content" '{gsub(/<!--template-->/, new_content)}1' template.html > index.html.tmp
         mv index.html.tmp index.html
