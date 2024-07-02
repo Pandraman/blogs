@@ -34,7 +34,7 @@ jobs:
         
         # Debug: Output the new content
         echo "Generated Content:"
-        echo -e "$new_content"
+        echo -e "$new_content" > generated_content.html
         
         # Insert the new content into template.html and output to index.html
         awk -v new_content="$new_content" '{gsub("<!--template-->", new_content)}1' template.html > index.html.tmp
