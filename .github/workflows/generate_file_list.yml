@@ -30,7 +30,7 @@ jobs:
         
             # Create HTML entry for the blog
             new_content="${new_content}<br>\n<div class=\"blog\">\n<h2>${filename}</h2>\n<p>${content_line}</p>\n<a href=\"${file_url}\">Details</a>\n</div>\n<br>\n"
-            echo "$Generated Content"
+            echo -e "$new_content"
         done
         
         # Debug: Output the new content
